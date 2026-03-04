@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "routes": [
+    { "src": "/cardapio", "dest": "/index.html" },
+    { "src": "/painel",   "dest": "/painel.html" },
+    { "src": "/",         "dest": "/index.html" }
+  ]
+}

@@ -398,6 +398,11 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 .status-banner-icon{font-size:1.3rem;flex-shrink:0;margin-top:1px;}
 .status-banner strong{display:block;font-size:.95rem;font-weight:900;margin-bottom:3px;}
 </style>
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script>
+    const SUPA = window.supabase.createClient('https://hbgnqmyvbzkkcxhwzakg.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhiZ25xbXl2Ynpra2N4aHd6YWtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzE3MTcsImV4cCI6MjA4ODE0NzcxN30.f8cB1T5W4FgaRk489vBjj7o_XuCvquTTW-KjX3g0XeU');
+  </script>
 </head>
 <body>
 
@@ -1350,6 +1355,33 @@ function enviarPedido(){
 
   const numero = '5564992869077'; // substitua pelo número do estabelecimento
   const url = `https://wa.me/${numero}?text=${encodeURIComponent(msg)}`;
+
+  // Salvar pedido no Supabase
+  const pedidoPayload = {
+    cliente: nome,
+    telefone: tel,
+    endereco: entrega === 'delivery' ? end : '',
+    entrega: entrega,
+    pagamento: pagamento,
+    itens: cart.map(i => ({
+      name: i.name,
+      emoji: i.emoji || '🍔',
+      price: i.price,
+      qty: i.qty,
+      category: i.category || ''
+    })),
+    total: total,
+    taxa: taxa,
+    status: 'recebido',
+    hora: (() => { const n=new Date(); return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0'); })()
+  };
+
+  SUPA.from('pedidos_skali').insert([pedidoPayload])
+    .then(function(res) {
+      if (res.error) console.warn('Supabase erro:', res.error.message);
+    })
+    .catch(function(e) { console.warn('Supabase offline:', e); });
+
   window.open(url, '_blank');
   goTo(6);
 }

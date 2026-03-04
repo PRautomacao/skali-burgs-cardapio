@@ -476,11 +476,6 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 .status-banner-icon{font-size:1.3rem;flex-shrink:0;margin-top:1px;}
 .status-banner strong{display:block;font-size:.95rem;font-weight:900;margin-bottom:3px;}
 </style>
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <script>
-    const SUPA = window.supabase.createClient('https://hbgnqmyvbzkkcxhwzakg.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhiZ25xbXl2Ynpra2N4aHd6YWtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzE3MTcsImV4cCI6MjA4ODE0NzcxN30.f8cB1T5W4FgaRk489vBjj7o_XuCvquTTW-KjX3g0XeU');
-  </script>
 </head>
 <body>
 
@@ -523,7 +518,7 @@ body{display:flex;flex-direction:column;min-height:100vh;}
       <span class="info-card-icon">📞</span>
       <div class="info-card-text"><strong>Contato</strong>(64) 3674-5739 · (64) 99297-6260</div>
     </div>
-    <div class="info-card"><div class="info-card">
+    <div class="info-card">
       <span class="info-card-icon">💳</span>
       <div class="info-card-text"><strong>Formas de Pagamento</strong>PIX · Cartão · Dinheiro</div>
     </div>
@@ -1642,5 +1637,20 @@ function selectMontagem(nome, emoji, preco, cardId) {
   showToast('✅ Montagem: ' + nome + ' selecionada!');
 }
 </script>
+
+  <!-- Supabase CDN — carregado no final para não bloquear renderização -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script>
+    // Inicializar Supabase com segurança
+    var SUPA = null;
+    try {
+      if (window.supabase) {
+        SUPA = window.supabase.createClient(
+          'https://hbgnqmyvbzkkcxhwzakg.supabase.co',
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhiZ25xbXl2Ynpra2N4aHd6YWtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzE3MTcsImV4cCI6MjA4ODE0NzcxN30.f8cB1T5W4FgaRk489vBjj7o_XuCvquTTW-KjX3g0XeU'
+        );
+      }
+    } catch(e) { console.warn('Supabase init error:', e); }
+  </script>
 </body>
 </html>

@@ -280,10 +280,88 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--am);color:var(--az);padding:10px 22px;border-radius:20px;font-weight:900;font-size:.85rem;z-index:999;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-@media(max-width:400px){
+@media(max-width:480px){
+  /* Geral */
   .hero-name{font-size:2.3rem;}
   .pagamento-grid{grid-template-columns:1fr 1fr 1fr;}
   .entrega-cards{grid-template-columns:1fr;}
+
+  /* Itens do cardápio mobile */
+  .mitem{
+    padding:0;
+    flex-direction:column;
+    align-items:stretch;
+  }
+  .mitem.no-click{
+    flex-direction:row;
+    align-items:center;
+    padding:11px 12px;
+  }
+  .mitem-header{
+    padding:11px 12px;
+    gap:10px;
+    flex-wrap:nowrap;
+  }
+  .mitem-emoji{
+    font-size:1.6rem;
+    width:34px;
+    flex-shrink:0;
+  }
+  .mitem-info{
+    flex:1;
+    min-width:0;
+  }
+  .mitem-name{
+    font-size:0.88rem;
+    white-space:normal;
+    line-height:1.3;
+  }
+  .mitem-desc{
+    font-size:0.72rem;
+    line-height:1.5;
+    white-space:normal;
+    word-break:break-word;
+    margin-top:3px;
+    display:block !important;
+  }
+  .mitem-right{
+    flex-shrink:0;
+    align-items:flex-end;
+    gap:5px;
+    min-width:72px;
+  }
+  .mitem-price{
+    font-size:1rem;
+    white-space:nowrap;
+  }
+  .add-btn{
+    width:32px;
+    height:32px;
+    font-size:1.2rem;
+  }
+  /* Painel de ingredientes mobile */
+  .ing-panel{
+    padding:12px;
+  }
+  .ing-tag, .ad-tag{
+    font-size:.75rem;
+    padding:5px 10px;
+  }
+  .ads-grid-full, .ing-grid{
+    gap:6px;
+  }
+  .add-to-cart-btn{
+    font-size:.95rem;
+    padding:14px;
+    margin-top:12px;
+  }
+  /* Seções */
+  .menu-section-title{
+    font-size:1rem;
+  }
+  .sub-section-title{
+    font-size:.78rem;
+  }
 }
 
 /* ── INGREDIENTES SELECIONÁVEIS ── */
@@ -422,6 +500,12 @@ body{display:flex;flex-direction:column;min-height:100vh;}
     <div class="status-dot" id="status-badge"><span class="dot" id="status-dot-circle"></span><span id="status-text">Verificando...</span></div>
   </div>
 </div>
+  <!-- BOTÃO FAZER PEDIDO — ACIMA DAS INFOS -->
+  <div style="padding:0 0 16px;">
+    <button class="btn-primary" onclick="goTo(1)" style="width:100%;font-size:1.05rem;padding:16px;">🛒 Fazer Pedido</button>
+    <p style="text-align:center;font-size:.75rem;color:var(--txt2);margin-top:8px;font-weight:700;">Peça agora e receba em casa ou retire no local</p>
+  </div>
+
   <div class="info-cards">
     <div class="info-card">
       <span class="info-card-icon">📍</span>
@@ -439,16 +523,12 @@ body{display:flex;flex-direction:column;min-height:100vh;}
       <span class="info-card-icon">📞</span>
       <div class="info-card-text"><strong>Contato</strong>(64) 3674-5739 · (64) 99297-6260</div>
     </div>
-    <div class="info-card">
+    <div class="info-card"><div class="info-card">
       <span class="info-card-icon">💳</span>
       <div class="info-card-text"><strong>Formas de Pagamento</strong>PIX · Cartão · Dinheiro</div>
     </div>
   </div>
-  <div class="s0-cta" style="margin-top:auto;">
-    <button class="btn-primary" onclick="goTo(1)">🛒 Fazer Pedido</button>
-    <p style="text-align:center;font-size:.75rem;color:var(--txt2);margin-top:10px;font-weight:700;">Peça agora e receba em casa ou retire no local</p>
   </div>
-</div>
 
 <!-- ══════════════════════════════════════════
      TELA 1 — TIPO DE ENTREGA

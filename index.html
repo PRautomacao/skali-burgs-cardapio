@@ -725,147 +725,84 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 // ══════════════════════════════════════
 // DATA
 // ══════════════════════════════════════
-const ADICIONAIS = [
-  {n:"Filé de Frango",p:7},{n:"Filé Bovino",p:11},{n:"Hambúrguer",p:7},
-  {n:"Lombo de Porco",p:7},{n:"Bacon",p:4},{n:"Queijo",p:4},{n:"Ovo",p:4},
-  {n:"Salsicha",p:4},{n:"Catupiry",p:4},{n:"Cheddar",p:4},{n:"Presunto",p:4},
-  {n:"Calabresa",p:4},{n:"Palmito",p:4},{n:"Cebola",p:2},{n:"Abacaxi",p:2},
-  {n:"Milho",p:2},{n:"Batata",p:2}
-];
-
-const MENU = [
-  {
-    id:"sanduiches", icon:"🥪", title:"Sanduíches", sub:"Toque no item para ver adicionais",
-    subs:[
-      { title:null, items:[
-        {e:"🌭",n:"Big Dog",d:"Pão, salsicha, queijo e batata",p:11,ads:true},
-        {e:"🥪",n:"Bauru",d:"Pão, presunto, queijo e tomate",p:11,ads:true},
-        {e:"🥪",n:"Misto",d:"Pão, presunto e queijo",p:11,ads:true},
-        {e:"🍔",n:"Burg",d:"Pão, hambúrguer, queijo, alface, tomate, batata e milho",p:18,ads:true},
-        {e:"🍗",n:"Frango",d:"Pão, frango, queijo, alface, tomate, milho e batata",p:18,ads:true},
-        {e:"🍔",n:"Mac",d:"Pão, hambúrguer, queijo, bacon, alface, tomate, milho e batata",p:22,ads:true},
-        {e:"🌽",n:"Milho Verde",d:"Pão, hambúrguer, queijo, salsicha, alface, tomate, milho e batata",p:22,ads:true},
-        {e:"🥓",n:"Bacon",d:"Pão, hambúrguer, queijo, bacon, ovo, alface, tomate, milho e batata",p:24,ads:true},
-        {e:"🍗",n:"Frango Especial",d:"Pão, frango, queijo, ovo, bacon, alface, tomate, milho e batata",p:24,ads:true},
-        {e:"🌽",n:"Milho Verde Especial",d:"Pão, hambúrguer, queijo, salsicha, ovo, alface, tomate, milho e batata",p:24,ads:true},
-        {e:"🍔",n:"Super Americano",d:"Pão, hambúrguer, queijo, ovo, presunto, alface, tomate, milho e batata",p:24,ads:true},
-        {e:"🥩",n:"Filé Bacon",d:"Pão, filé, queijo, bacon, alface, tomate, milho e batata",p:25,ads:true},
-        {e:"🌶️",n:"Calabresa",d:"Pão, filé, queijo, calabresa, abacaxi, alface, tomate, batata e milho",p:26.5,ads:true},
-        {e:"🥩",n:"Nífico",d:"Pão, filé, queijo, ovo, requeijão, alface, tomate, milho e batata",p:27,ads:true},
-        {e:"🍗",n:"Big-Frango",d:"Pão, frango, queijo, salsicha, ovo, bacon, alface, tomate, batata e milho",p:27,ads:true},
-        {e:"💥",n:"Bagunça",d:"Pão, hambúrguer, queijo, bacon, ovo, salsicha, alface, tomate, batata e milho",p:27,ads:true},
-        {e:"🍔",n:"Duplo",d:"Pão, 2 hambúrgueres, queijo, bacon, alface, tomate, milho e batata",p:28.5,ads:true},
-        {e:"🥩",n:"Filé Bagunça",d:"Pão, filé, bacon, ovo, alface, tomate, milho e batata",p:29,ads:true},
-        {e:"🌟",n:"Tudo",d:"Pão, hambúrguer, queijo, ovo, bacon, salsicha, presunto, alface, tomate, milho e batata",p:30,ads:true},
-        {e:"🍗",n:"Tudo Frango",d:"Pão, frango, queijo, ovo, bacon, salsicha, presunto, alface, tomate, milho e batata",p:30,ads:true},
-        {e:"🐷",n:"Tudo Lombo",d:"Pão, lombo, queijo, ovo, bacon, salsicha, presunto, alface, tomate, milho e batata",p:30,ads:true},
-        {e:"🥩",n:"Lombo Mineira",d:"Pão, lombo, hambúrguer, queijo, ovo, cebola, alface, tomate, milho e batata",p:32,ads:true},
-        {e:"🥩",n:"Tudo Filé",d:"Pão, filé, queijo, ovo, bacon, salsicha, presunto, alface, tomate, milho e batata",p:33,ads:true},
-        {e:"🥩",n:"Filé Mineira",d:"Pão, filé, hambúrguer, queijo, ovo, cebola, alface, tomate, milho e batata",p:33.5,ads:true},
-        {e:"🍗",n:"Frango Mineira",d:"Pão, frango, hambúrguer, queijo, ovo, cebola, bacon, alface, tomate, milho e batata",p:34,ads:true},
-        {e:"👑",n:"Moda",d:"Hambúrguer, queijo, bacon, ovo, salsicha, presunto, calabresa, abacaxi, palmito, requeijão, alface, tomate, milho e batata",p:41,ads:true},
-        {e:"🏆",n:"Super Skali Burg's ⭐",d:"Hambúrguer, filé, lombo, frango, ovo, bacon, presunto, calabresa, queijo, salsicha, palmito, cebola, abacaxi, requeijão, alface, tomate, milho e batata",p:60,ads:true}
-      ]}
-    ]
-  },
-  {
-    id:"porcoes", icon:"🍟", title:"Porções Fritas", sub:"Petiscos e porções para compartilhar",
-    subs:[
-      { title:null, items:[
-        {e:"🫓",n:"Quibe c/ Queijo",d:"",p:35},
-        {e:"🥩",n:"Disquinho Bovino",d:"15 unidades",p:35},
-        {e:"🐷",n:"Disquinho Suíno",d:"15 unidades",p:35},
-        {e:"🍗",n:"Disquinho de Frango",d:"15 unidades",p:35},
-        {e:"🍗",n:"Coxinha da Asa",d:"12 unidades",p:34},
-        {e:"🐟",n:"Filé de Tilápia",d:"500g",p:55},
-        {e:"🐟",n:"Filé de Tilápia (Meia)",d:"",p:41},
-        {e:"🐟",n:"Costelinha de Tilápia",d:"500g",p:42},
-        {e:"🍠",n:"Mandioca Frita",d:"500g",p:22},
-        {e:"🌶️",n:"Torresminho Mexicano",d:"500g",p:35},
-        {e:"🍗",n:"Frango a Passarinho",d:"700g",p:37},
-        {e:"🍟",n:"Batata Simples",d:"500g",p:24},
-        {e:"🍟",n:"Batata Simples (Meia)",d:"",p:15},
-        {e:"🧀",n:"Batata Completa",d:"500g + mussarela, bacon e cheddar",p:35},
-        {e:"🧀",n:"Batata Completa (Meia)",d:"",p:25},
-        {e:"🍗",n:"Tiras de Frango Empanadas",d:"500g",p:35},
-        {e:"🌭",n:"Linguiça Gaúcha",d:"700g · mandioca, farofa e vinagrete",p:52},
-        {e:"🌶️",n:"Linguiça Gaúcha Apimentada",d:"700g · mandioca, farofa e vinagrete",p:52}
-      ]}
-    ]
-  },
-  {
-    id:"grelhados", icon:"🔥", title:"Pratos & Grelhados", sub:"Refeições completas direto da grelha",
-    subs:[
-      { title:"🍽️ Pratos Individuais", items:[
-        {e:"🥩",n:"Strogonoff de Filé",d:"Acompanha arroz e batata palha",p:28.5},
-        {e:"🍗",n:"Strogonoff de Frango",d:"Acompanha arroz e batata palha",p:26.5},
-        {e:"🥩",n:"Filé com Fritas",d:"Acompanha arroz, batata frita e vinagrete",p:28.5},
-        {e:"🍳",n:"Omelete Simples",d:"Ovo, queijo e cebola",p:19},
-        {e:"🍳",n:"Omelete Especial",d:"Ovo, queijo, presunto, cebola, bacon, tomate e cheiro verde",p:26}
-      ]},
-      { title:"🪵 Na Grelha — Opções de Jantar", items:[
-        {e:"🍌",n:"Bananinha",d:"300g · arroz, feijão tropeiro, vinagrete, mandioca e salada",p:35},
-        {e:"🥩",n:"Fraldinha",d:"300g · arroz, feijão tropeiro, vinagrete, mandioca e salada",p:35},
-        {e:"🥩",n:"Contra Filé ou Alcatra",d:"300g · arroz, feijão tropeiro, vinagrete, mandioca e salada",p:35},
-        {e:"👑",n:"Picanha ⭐",d:"300g · arroz, feijão tropeiro, vinagrete, mandioca e salada",p:43}
-      ]},
-      { title:"🪵 Tábuas de Carne", items:[
-        {e:"🍌",n:"Tábua de Bananinha",d:"600g · mandioca, vinagrete, farofa e cebola",p:70},
-        {e:"🥩",n:"Tábua de Fraldinha",d:"600g · mandioca, vinagrete, farofa e cebola",p:75},
-        {e:"🥩",n:"Tábua de Contra Filé",d:"600g · mandioca, vinagrete, farofa e cebola",p:75},
-        {e:"👑",n:"Tábua de Picanha ⭐",d:"600g · mandioca, vinagrete, farofa e cebola",p:100}
-      ]}
-    ]
-  },
-  {
-    id:"bebidas", icon:"🍺", title:"Cervejas & Bebidas", sub:"Refrigerantes, energéticos, cervejas e mais",
-    subs:[
-      { title:"🥤 Refrigerantes", items:[
-        {e:"🥤",n:"Refrigerante Lata (todos)",d:"",p:6},
-        {e:"🥤",n:"Refrigerante KS 290ml (todos)",d:"",p:5},
-        {e:"🥤",n:"Refrigerante 600ml (todos)",d:"",p:10},
-        {e:"🥤",n:"Refrigerante 1 Litro (todos)",d:"",p:11},
-        {e:"🥤",n:"Refrigerante 2 Litros (todos)",d:"",p:15},
-        {e:"🧃",n:"Suco 1 Litro Caixa (todos)",d:"",p:12}
-      ]},
-      { title:"💧 Águas e Outros", items:[
-        {e:"💧",n:"Água s/ Gás",d:"",p:4},
-        {e:"💧",n:"Água c/ Gás",d:"",p:4.5},
-        {e:"🍋",n:"Sprite Fresh ou H2O Limoneto",d:"",p:7},
-        {e:"🫧",n:"Água Tônica",d:"",p:6}
-      ]},
-      { title:"⚡ Energéticos e Outras Bebidas", items:[
-        {e:"⚡",n:"Red Bull 473ml (Latão)",d:"",p:22},
-        {e:"⚡",n:"Monster ou Extra Power 473ml",d:"",p:14},
-        {e:"⚡",n:"Red Bull 250ml Sabores",d:"",p:12},
-        {e:"🍸",n:"Smirnoff Ice",d:"",p:12},
-        {e:"🍸",n:"Cabaré Ice",d:"",p:10}
-      ]},
-      { title:"🌊 Especial Cozumel", items:[
-        {e:"🌊",n:"Cozumel Premium (Corona Long Neck)",d:"",p:15},
-        {e:"🌊",n:"Preparo Cozumel",d:"",p:5}
-      ]},
-      { title:"🍺 Cervejas Garrafa 600ml", items:[
-        {e:"🍺",n:"Amstel 600ml",d:"",p:12},{e:"🍺",n:"Antárctica 600ml",d:"",p:11},
-        {e:"🍺",n:"Antárctica Original 600ml",d:"",p:12},{e:"🍺",n:"Brahma 600ml",d:"",p:11},
-        {e:"🍺",n:"Brahma Duplo Malte 600ml",d:"",p:11},{e:"🍺",n:"Budweiser 600ml",d:"",p:12},
-        {e:"🍺",n:"Heineken 600ml",d:"",p:15},{e:"🍺",n:"Skol 600ml",d:"",p:11},
-        {e:"🍺",n:"Stella Artois 600ml",d:"",p:13.5},{e:"🍺",n:"Spatten 600ml",d:"",p:13}
-      ]},
-      { title:"🍾 Long Neck", items:[
-        {e:"🍾",n:"Budweiser Long Neck",d:"",p:7.5},{e:"🍾",n:"Corona Long Neck",d:"",p:10},
-        {e:"🍾",n:"Heineken Long Neck",d:"",p:10},{e:"🍾",n:"Heineken Zero Long Neck",d:"",p:10}
-      ]},
-      { title:"🥫 Cervejas Lata 269ml", items:[
-        {e:"🥫",n:"Antárctica Original (Palito) 269ml",d:"",p:5},
-        {e:"🥫",n:"Heineken (Palito) 269ml",d:"",p:6}
-      ]}
-    ]
-  }
-];
-
+// ══════════════════════════════════════
+// DATA — carregado do Supabase
+// ══════════════════════════════════════
+let ADICIONAIS = [];  // preenchido via loadCardapio()
+let MENU = [];        // preenchido via loadCardapio()
 const SUCOS_LIST = ["🍍 Abacaxi","🍍 Abacaxi c/ Hortelã","🫐 Açaí","🍒 Acerola","🍫 Cupuaçu","🥜 Caju","🟡 Cajá","🍫 Cacau","🍈 Goiaba","💚 Graviola","🟠 Maracujá","🍓 Morango","🍑 Pêssego","🍇 Uva","🟤 Tamarindo","🍋 Limão"];
 const CREMES_LIST = ["🍍 Abacaxi","🍍 Abacaxi c/ Hortelã","🫐 Açaí","🍒 Acerola","🍫 Cupuaçu","🥜 Caju","🟡 Cajá","🍫 Cacau","🍈 Goiaba","💚 Graviola","🟠 Maracujá","🍓 Morango","🍑 Pêssego","🍇 Uva","🟤 Tamarindo"];
+
+// Cache local para fallback offline
+const MENU_CACHE_KEY = 'skali_menu_cache';
+
+async function loadCardapio() {
+  try {
+    // Buscar categorias
+    const [catRes, itemsRes, adicRes] = await Promise.all([
+      fetch(`https://hbgnqmyvbzkkcxhwzakg.supabase.co/rest/v1/categorias_skali?ativo=eq.true&order=ordem`, {
+        headers: { apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhiZ25xbXl2Ynpra2N4aHd6YWtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzE3MTcsImV4cCI6MjA4ODE0NzcxN30.f8cB1T5W4FgaRk489vBjj7o_XuCvquTTW-KjX3g0XeU', Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhiZ25xbXl2Ynpra2N4aHd6YWtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzE3MTcsImV4cCI6MjA4ODE0NzcxN30.f8cB1T5W4FgaRk489vBjj7o_XuCvquTTW-KjX3g0XeU' }
+      }),
+      fetch(`https://hbgnqmyvbzkkcxhwzakg.supabase.co/rest/v1/cardapio_skali?ativo=eq.true&order=ordem`, {
+        headers: { apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhiZ25xbXl2Ynpra2N4aHd6YWtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzE3MTcsImV4cCI6MjA4ODE0NzcxN30.f8cB1T5W4FgaRk489vBjj7o_XuCvquTTW-KjX3g0XeU', Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhiZ25xbXl2Ynpra2N4aHd6YWtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzE3MTcsImV4cCI6MjA4ODE0NzcxN30.f8cB1T5W4FgaRk489vBjj7o_XuCvquTTW-KjX3g0XeU' }
+      }),
+      fetch(`https://hbgnqmyvbzkkcxhwzakg.supabase.co/rest/v1/adicionais_skali?ativo=eq.true&order=ordem`, {
+        headers: { apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhiZ25xbXl2Ynpra2N4aHd6YWtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzE3MTcsImV4cCI6MjA4ODE0NzcxN30.f8cB1T5W4FgaRk489vBjj7o_XuCvquTTW-KjX3g0XeU', Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhiZ25xbXl2Ynpra2N4aHd6YWtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzE3MTcsImV4cCI6MjA4ODE0NzcxN30.f8cB1T5W4FgaRk489vBjj7o_XuCvquTTW-KjX3g0XeU' }
+      })
+    ]);
+
+    if (!catRes.ok || !itemsRes.ok) throw new Error('Falha ao carregar cardápio');
+
+    const categorias = await catRes.json();
+    const itens      = await itemsRes.json();
+    const adics      = await adicRes.json();
+
+    // Montar ADICIONAIS
+    ADICIONAIS = adics.map(a => ({ n: a.nome, p: parseFloat(a.preco) }));
+
+    // Montar MENU no formato esperado pelo renderMenu()
+    MENU = categorias.map(cat => {
+      const catItens = itens.filter(i => i.categoria_id === cat.id);
+      return {
+        id: cat.id,
+        icon: cat.icon,
+        title: cat.titulo,
+        sub: cat.subtitulo || '',
+        subs: [{
+          title: null,
+          items: catItens.map(i => ({
+            e: i.emoji,
+            n: i.nome,
+            d: i.descricao,
+            p: parseFloat(i.preco),
+            ads: i.tem_adicionais,
+            _id: i.id
+          }))
+        }]
+      };
+    }).filter(cat => cat.subs[0].items.length > 0);
+
+    // Salvar cache
+    try { localStorage.setItem(MENU_CACHE_KEY, JSON.stringify({ MENU, ADICIONAIS, ts: Date.now() })); } catch(e) {}
+
+    return true;
+  } catch(err) {
+    console.warn('Supabase offline, usando cache:', err);
+    // Tentar cache local
+    try {
+      const cached = localStorage.getItem(MENU_CACHE_KEY);
+      if (cached) {
+        const data = JSON.parse(cached);
+        MENU = data.MENU;
+        ADICIONAIS = data.ADICIONAIS;
+        showToast('⚠️ Usando cardápio em cache');
+        return true;
+      }
+    } catch(e) {}
+    showToast('❌ Erro ao carregar cardápio');
+    return false;
+  }
+}
 
 // ══════════════════════════════════════
 // STATE
@@ -882,7 +819,13 @@ function goTo(n) {
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('s'+n).classList.add('active');
   window.scrollTo(0,0);
-  if(n===2) renderMenu();
+  if(n===2) {
+    if (MENU.length === 0) {
+      loadCardapio().then(() => renderMenu());
+    } else {
+      renderMenu();
+    }
+  }
   if(n===3) renderCart();
   if(n===4) {
     document.getElementById('fg-endereco').style.display = entrega==='delivery'?'block':'none';

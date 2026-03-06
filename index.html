@@ -811,6 +811,7 @@ let cart = [];           // [{name, emoji, price, qty, category}]
 let entrega = null;      // 'delivery' | 'retirada'
 let pagamento = null;    // 'pix'|'cartao'|'dinheiro'
 const TAXA = 5;
+const N8N_WEBHOOK = 'https://n8n.skali-burgs.com/webhook/pedido-confirmacao';
 
 // ══════════════════════════════════════
 // NAVIGATION
@@ -1399,6 +1400,13 @@ function enviarPedido(){
       if (res.error) console.warn('Supabase erro:', res.error.message);
     })
     .catch(function(e) { console.warn('Supabase offline:', e); });
+
+  // Dispara webhook n8n para confirmação via WhatsApp (fire-and-forget)
+  fetch(N8N_WEBHOOK, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(pedidoPayload)
+  }).catch(function(e) { console.warn('Webhook n8n indisponível:', e); });
 
   window.open(url, '_blank');
   goTo(6);

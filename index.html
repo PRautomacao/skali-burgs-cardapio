@@ -81,7 +81,7 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 .entrega-name{font-weight:900;font-size:1rem;color:var(--txt);}
 .entrega-desc{font-size:0.75rem;color:var(--txt2);margin-top:4px;font-weight:700;}
 .entrega-price{font-size:0.78rem;color:var(--am);font-weight:900;margin-top:4px;}
-.s1-cta{padding:24px 16px 30px;margin-top:auto;}
+.s1-cta{padding:24px 16px 30px;}
 
 /* ══════════════════════════════════
    TELA 2 — CARDÁPIO
@@ -575,7 +575,6 @@ body{display:flex;flex-direction:column;min-height:100vh;}
     <a class="mnav-btn" href="#ms-bebidas">🍺 Bebidas</a>
     <a class="mnav-btn" href="#ms-sucos">🍹 Sucos</a>
     <a class="mnav-btn" href="#ms-cremes">🍨 Cremes</a>
-    <a class="mnav-btn" href="#ms-montagem">⚙️ Montagem</a>
   </nav></div>
   <div class="menu-content" id="menu-content"><!-- gerado por JS --></div>
   <button class="float-cart" id="float-cart" onclick="goTo(3)">
@@ -935,26 +934,6 @@ function renderMenu() {
     <div class="spill-grid">${CREMES_LIST.map(s=>`<div class="spill" onclick="addCreme('${s}')">${s}</div>`).join('')}</div>
     <div class="note-box" style="margin-top:12px;">💡 Adicionais: Leite Condensado +R$3,00 · Sonho de Valsa +R$3,00</div>
   </div>`;
-  // MONTAGEM
-  html += `<div id="ms-montagem">
-    <div class="sec-banner"><div class="sec-banner-icon">⚙️</div><div><div class="sec-banner-title">Montagem</div><div class="sec-banner-sub">Selecione como quer seu lanche</div></div></div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0 20px;">
-      ${[
-        {e:'🍽️', n:'Prato',    d:'Aberto no prato', p:0,    id:'mont-prato'},
-        {e:'🛍️', n:'Saquinho', d:'Tradicional',      p:0,    id:'mont-saquinho'},
-        {e:'🥪',  n:'Prensado', d:'+ R$2,50',         p:2.5,  id:'mont-prensado'}
-      ].map(m=>`
-      <div id="${m.id}" class="montagem-card" onclick="selectMontagem('${m.n}','${m.e}',${m.p},'${m.id}')">
-        <div style="font-size:2rem;margin-bottom:8px;">${m.e}</div>
-        <div class="mont-name">${m.n}</div>
-        <div class="mont-desc">${m.d}</div>
-        ${m.p>0 ? `<div class="mont-price">+${fmt(m.p)}</div>` : ''}
-        <div class="mont-check" id="check-${m.id}">✓</div>
-      </div>`).join('')}
-    </div>
-    <div class="note-box" id="mont-note" style="display:none">✅ Montagem adicionada ao pedido!</div>
-    <div class="note-box">💡 A montagem é informada ao estabelecimento junto com seu pedido.</div>
-  </div>`;
 
   mc.innerHTML = html;
   initNavScroll();
@@ -1017,6 +996,21 @@ function buildItemCard(item, key, secTitle, ings) {
       ` : ''}
       <div class="ads-section-title">➕ Adicionais pagos</div>
       <div class="ads-grid-full" id="ads-${key}">${adsHtml}</div>
+      <div class="ing-section-title">⚙️ Montagem — como quer seu lanche?</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 12px;">
+        ${[
+          {e:'🍽️', n:'Prato',    d:'Aberto no prato', p:0,   id:'prato'},
+          {e:'🛍️', n:'Saquinho', d:'Tradicional',      p:0,   id:'saquinho'},
+          {e:'🥪',  n:'Prensado', d:'+ R$2,50',         p:2.5, id:'prensado'}
+        ].map(m=>`
+        <div id="mont-${m.id}-${key}" class="montagem-card" onclick="selectMontagemItem('${m.n}','${m.e}',${m.p},'${m.id}','${key}')">
+          <div style="font-size:1.6rem;margin-bottom:6px;">${m.e}</div>
+          <div class="mont-name">${m.n}</div>
+          <div class="mont-desc">${m.d}</div>
+          ${m.p>0 ? `<div class="mont-price">+${fmt(m.p)}</div>` : ''}
+          <div class="mont-check" id="check-mont-${m.id}-${key}">✓</div>
+        </div>`).join('')}
+      </div>
       <button class="add-to-cart-btn" onclick="addCustomItem('${item.n}','${item.e}',${item.p},'${secTitle}','${key}')">
         🛒 Adicionar ao Carrinho
       </button>
@@ -1123,8 +1117,12 @@ function addCustomItem(name, emoji, price, category, key){
     notes.push('+' + extraStr);
   }
 
+  const mont = itemMontagem[key];
+  if(mont) notes.push('Montagem: ' + mont.nome);
+
   const extraPrice = extras.reduce((a,x)=>a+x.p, 0);
-  const finalPrice = price + extraPrice;
+  const montPrice  = mont ? mont.preco : 0;
+  const finalPrice = price + extraPrice + montPrice;
   const noteStr    = notes.join(' | ');
 
   const displayName = noteStr ? name + ' (' + noteStr + ')' : name;
@@ -1147,8 +1145,13 @@ function addCustomItem(name, emoji, price, category, key){
   // reset selections for this item
   delete itemRemovals[key];
   delete itemExtras[key];
+  delete itemMontagem[key];
   document.querySelectorAll(`#ings-${key} .ing-tag`).forEach(t=>t.classList.remove('removed'));
   document.querySelectorAll(`#ads-${key} .ad-tag`).forEach(t=>t.classList.remove('selected'));
+  ['prato','saquinho','prensado'].forEach(function(t){
+    var c = document.getElementById('mont-'+t+'-'+key);
+    if(c) c.classList.remove('selected');
+  });
   if(subInput) subInput.value='';
   updateSubBadge(key);
 }
@@ -1441,7 +1444,7 @@ function showToast(msg){
 // NAV SCROLL HIGHLIGHT
 // ══════════════════════════════════════
 function initNavScroll(){
-  const ids=['ms-sanduiches','ms-porcoes','ms-grelhados','ms-bebidas','ms-sucos','ms-cremes','ms-montagem'];
+  const ids=['ms-sanduiches','ms-porcoes','ms-grelhados','ms-bebidas','ms-sucos','ms-cremes'];
   const btns=document.querySelectorAll('.mnav-btn');
   const io=new IntersectionObserver(entries=>{
     entries.forEach(e=>{
@@ -1563,6 +1566,19 @@ function addSuco(sabor) {
 function addCreme(sabor) {
   var nome = sabor.replace(/^[^\w\s]*\s*/, '').trim();
   quickAdd('Creme de ' + nome, '🍨', 15, 'Sucos/Cremes');
+}
+
+var itemMontagem = {};
+
+function selectMontagemItem(nome, emoji, preco, tipo, key) {
+  ['prato','saquinho','prensado'].forEach(function(t){
+    var c = document.getElementById('mont-'+t+'-'+key);
+    if(c) c.classList.remove('selected');
+  });
+  var card = document.getElementById('mont-'+tipo+'-'+key);
+  if(card) card.classList.add('selected');
+  itemMontagem[key] = {nome: nome, emoji: emoji, preco: preco};
+  showToast('✅ Montagem: ' + nome + ' selecionada!');
 }
 
 function selectMontagem(nome, emoji, preco, cardId) {

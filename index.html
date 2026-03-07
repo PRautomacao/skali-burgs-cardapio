@@ -997,12 +997,12 @@ function buildItemCard(item, key, secTitle, ings) {
       <div class="ads-section-title">➕ Adicionais pagos</div>
       <div class="ads-grid-full" id="ads-${key}">${adsHtml}</div>
       <div class="ing-section-title">⚙️ Montagem — como quer seu lanche?</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 12px;">
+      <div style="display:grid;grid-template-columns:repeat(${entrega==='delivery'?2:3},1fr);gap:8px;margin:8px 0 12px;">
         ${[
           {e:'🍽️', n:'Prato',    d:'Aberto no prato', p:0,   id:'prato'},
           {e:'🛍️', n:'Saquinho', d:'Tradicional',      p:0,   id:'saquinho'},
           {e:'🥪',  n:'Prensado', d:'+ R$2,50',         p:2.5, id:'prensado'}
-        ].map(m=>`
+        ].filter(m=> entrega!=='delivery' || m.id!=='prato').map(m=>`
         <div id="mont-${m.id}-${key}" class="montagem-card" onclick="selectMontagemItem('${m.n}','${m.e}',${m.p},'${m.id}','${key}')">
           <div style="font-size:1.6rem;margin-bottom:6px;">${m.e}</div>
           <div class="mont-name">${m.n}</div>

@@ -723,7 +723,7 @@ body{display:flex;flex-direction:column;min-height:100vh;}
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;">
     <div class="success-icon">✅</div>
     <div class="success-title">Pedido Enviado!</div>
-    <p class="success-msg">Seu pedido foi enviado ao WhatsApp do Skali Burg's. Aguarde a confirmação! 🍔</p>
+    <p class="success-msg">Seu pedido foi recebido com sucesso! Em breve você receberá a confirmação no WhatsApp. 🍔</p>
     <div class="s6-btns">
       <button class="btn-primary" onclick="novoPedido()">🏠 Fazer Novo Pedido</button>
     </div>
@@ -1353,49 +1353,26 @@ function toggleTroco(){
 // ══════════════════════════════════════
 // ENVIAR — WHATSAPP
 // ══════════════════════════════════════
-function enviarPedido(){
+async function enviarPedido(){
   if(!pagamento){showToast('⚠️ Selecione a forma de pagamento');return;}
   const nome=document.getElementById('f-nome').value.trim();
   const tel=document.getElementById('f-tel').value.trim();
   const end=document.getElementById('f-end').value.trim();
-  const obs='';
   const troco=document.getElementById('troco-cb').checked?document.getElementById('troco-val').value:'';
   const taxa=entrega==='delivery'?TAXA:0;
   const total=cartTotal()+taxa;
 
-  let msg = `🍔 *PEDIDO — SKALI BURG'S*\n`;
-  msg += `─────────────────────\n`;
-  msg += `👤 *${nome}*\n📱 ${tel}\n`;
-  if(entrega==='delivery') msg += `📍 ${end}\n`;
-  msg += `─────────────────────\n`;
-  msg += `*🛵 Entrega:* ${entrega==='delivery'?'Delivery':'Retirada no balcão'}\n\n`;
-  msg += `*🧾 Itens:*\n`;
-  cart.forEach(c=>{
-    const base = c._key ? c.name.split(' (')[0] : c.name;
-    const note = c._notes ? ` [${c._notes}]` : '';
-    msg += `• ${c.qty}x ${base}${note} — ${fmt(c.price*c.qty)}\n`;
-  });
-  if(obs) msg += `\n📝 *Obs:* ${obs}\n`;
-  msg += `\n─────────────────────\n`;
-  if(taxa>0) msg += `Taxa de entrega: ${fmt(taxa)}\n`;
-  msg += `*TOTAL: ${fmt(total)}*\n`;
-  msg += `💳 Pagamento: ${pagamento.toUpperCase()}`;
-  if(troco){
-    var trocoCalc = parseFloat(troco) - (cartTotal()+(entrega==='delivery'?TAXA:0));
-    msg += ' (Pagamento: R$'+parseFloat(troco).toFixed(2).replace('.',',')+' | Troco: '+fmt(trocoCalc)+')';
-  }
-  msg += `\n─────────────────────`;
+  // Bloqueia o botão para evitar duplo envio
+  const btn = document.querySelector('#s5 .btn-primary');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Enviando pedido...'; }
 
-  const numero = '5564992869077'; // substitua pelo número do estabelecimento
-  const url = `https://wa.me/${numero}?text=${encodeURIComponent(msg)}`;
-
-  // Salvar pedido no Supabase
   const pedidoPayload = {
     cliente: nome,
     telefone: tel,
     endereco: entrega === 'delivery' ? end : '',
     entrega: entrega,
     pagamento: pagamento,
+    troco: troco || null,
     itens: cart.map(i => ({
       name: i.name,
       emoji: i.emoji || '🍔',
@@ -1409,23 +1386,31 @@ function enviarPedido(){
     hora: (() => { const n=new Date(); return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0'); })()
   };
 
+  // Salvar pedido no Supabase (fire-and-forget, não bloqueia o fluxo)
   SUPA.from('pedidos_skali').insert([pedidoPayload])
     .then(function(res) {
       if (res.error) console.warn('Supabase erro:', res.error.message);
     })
     .catch(function(e) { console.warn('Supabase offline:', e); });
 
-  // Dispara webhook n8n para confirmação via WhatsApp (fire-and-forget)
-  fetch(N8N_WEBHOOK, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(pedidoPayload)
-  }).catch(function(e) { console.warn('Webhook n8n indisponível:', e); });
-
-  window.open(url, '_blank');
-  goTo(6);
+  // Envia para o webhook n8n
+  // Usa no-cors para evitar bloqueio de CORS enquanto o header não está configurado no n8n
+  // O pedido é enviado normalmente — apenas a leitura da resposta é ignorada
+  try {
+    await fetch(N8N_WEBHOOK, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(pedidoPayload)
+    });
+    // Pedido enviado — avança para tela de sucesso
+    goTo(6);
+  } catch(e) {
+    console.warn('Erro ao enviar pedido:', e);
+    showToast('❌ Erro ao enviar pedido. Verifique sua conexão e tente novamente.');
+    if(btn){ btn.disabled=false; btn.textContent='✅ Confirmar e Enviar Pedido'; }
+  }
 }
-
 function novoPedido(){
   cart=[];pagamento=null;entrega=null;
   Object.keys(itemRemovals).forEach(k=>delete itemRemovals[k]);

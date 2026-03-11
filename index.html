@@ -1630,5 +1630,107 @@ function selectMontagem(nome, emoji, preco, cardId) {
       }
     } catch(e) { console.warn('Supabase init error:', e); }
   </script>
+
+  <script>
+    (function() {
+      const ORDER_API_ENDPOINT = '/api/pedido';
+
+      function getConfirmButton() {
+        return document.querySelector('.resumo-footer .btn-primary[onclick="enviarPedido()"]');
+      }
+
+      function updateSuccessScreen() {
+        var titleEl = document.querySelector('#s6 .success-title');
+        var msgEl = document.querySelector('#s6 .success-msg');
+        if (titleEl) titleEl.textContent = 'Pedido Confirmado!';
+        if (msgEl) msgEl.textContent = 'Recebemos seu pedido com sucesso. Agora e so aguardar a confirmacao da loja!';
+      }
+
+      window.enviarPedido = async function() {
+        if(!pagamento){showToast('?? Selecione a forma de pagamento');return;}
+
+        const nome = document.getElementById('f-nome').value.trim();
+        const tel = document.getElementById('f-tel').value.trim();
+        const end = document.getElementById('f-end').value.trim();
+        const obs = '';
+        const troco = document.getElementById('troco-cb').checked ? document.getElementById('troco-val').value : '';
+        const taxa = entrega === 'delivery' ? TAXA : 0;
+        const total = cartTotal() + taxa;
+
+        const pedidoPayload = {
+          origem: 'cardapio-web',
+          criado_em: new Date().toISOString(),
+          cliente: nome,
+          telefone: tel,
+          endereco: entrega === 'delivery' ? end : '',
+          entrega: entrega,
+          pagamento: pagamento,
+          observacoes: obs,
+          troco: troco ? Number(troco) : null,
+          itens: cart.map(function(i) {
+            return {
+              name: i.name,
+              emoji: i.emoji || '??',
+              price: i.price,
+              qty: i.qty,
+              category: i.category || ''
+            };
+          }),
+          total: total,
+          taxa: taxa,
+          status: 'recebido',
+          hora: (function() {
+            const n = new Date();
+            return String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
+          })()
+        };
+
+        const btn = getConfirmButton();
+        const originalBtnText = btn ? btn.innerHTML : '';
+
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML = '? Enviando pedido...';
+        }
+
+        if (window.SUPA) {
+          SUPA.from('pedidos_skali').insert([pedidoPayload])
+            .then(function(res) {
+              if (res.error) console.warn('Supabase erro:', res.error.message);
+            })
+            .catch(function(e) { console.warn('Supabase offline:', e); });
+        }
+
+        try {
+          const response = await fetch(ORDER_API_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(pedidoPayload)
+          });
+
+          let result = {};
+          try {
+            result = await response.json();
+          } catch (jsonError) {}
+
+          if (!response.ok || !result.success) {
+            throw new Error(result.error || 'Falha ao processar pedido');
+          }
+
+          updateSuccessScreen();
+          goTo(6);
+        } catch (error) {
+          console.error('Erro ao enviar pedido:', error);
+          showToast('? Erro ao enviar pedido. Verifique sua conexao e tente novamente.');
+        } finally {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalBtnText;
+          }
+        }
+      };
+    })();
+  </script>
+
 </body>
 </html>

@@ -1393,25 +1393,18 @@ async function enviarPedido(){
     })
     .catch(function(e) { console.warn('Supabase offline:', e); });
 
-  // Envia para o webhook n8n e aguarda a resposta antes de avançar
+  // Envia para o webhook n8n
+  // Usa no-cors para evitar bloqueio de CORS enquanto o header não está configurado no n8n
+  // O pedido é enviado normalmente — apenas a leitura da resposta é ignorada
   try {
-    const response = await fetch(N8N_WEBHOOK, {
+    await fetch(N8N_WEBHOOK, {
       method: 'POST',
+      mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(pedidoPayload)
     });
-
-    const data = await response.json();
-
-    if(data.status === 'fechado'){
-      showToast('⚠️ ' + (data.mensagem || 'Restaurante fechado no momento.'));
-      if(btn){ btn.disabled=false; btn.textContent='✅ Confirmar e Enviar Pedido'; }
-      return;
-    }
-
-    // Pedido aceito — avança para tela de sucesso sem abrir WhatsApp
+    // Pedido enviado — avança para tela de sucesso
     goTo(6);
-
   } catch(e) {
     console.warn('Erro ao enviar pedido:', e);
     showToast('❌ Erro ao enviar pedido. Verifique sua conexão e tente novamente.');

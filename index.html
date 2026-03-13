@@ -1074,7 +1074,7 @@ function buildItemCard(item, key, secTitle, ings) {
       <div class="ing-grid" id="ings-${key}">${ingsHtml}</div>
       ` : ''}
       <div class="ads-section-title">➕ Adicionais
-        <span id="free-slot-${key}" class="free-slot-info inativo" style="margin-left:8px;vertical-align:middle;">🔄 Retire um ingrediente para ganhar 1 grátis (exceto carnes)</span>
+        <span id="free-slot-${key}" class="free-slot-info inativo" style="margin-left:8px;vertical-align:middle;">🔄 Retire quantos ingredientes quiser mas só poderá acrescentar 1 grátis (exceto carnes)</span>
       </div>
       <div class="ads-grid-full" id="ads-${key}">${adsHtml}</div>
       <div class="ing-section-title">⚙️ Montagem — como quer seu lanche?</div>
@@ -1195,7 +1195,7 @@ function updateFreeSlot(key){
   const freeUsado  = !!itemFreeAd[key];
   if(!hasRemoved){
     badge.className='free-slot-info inativo';
-    badge.textContent='🔄 Retire um ingrediente para ganhar 1 grátis (exceto carnes)';
+    badge.textContent='🔄 Retire quantos ingredientes quiser mas só poderá acrescentar 1 grátis (exceto carnes)';
   } else if(freeUsado){
     badge.className='free-slot-info usado';
     badge.textContent='✅ Substituição grátis: ' + itemFreeAd[key];

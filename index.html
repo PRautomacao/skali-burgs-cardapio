@@ -467,6 +467,10 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 }
 .spill:hover{border-color:var(--am);background:rgba(245,196,0,.08);color:var(--am);}
 .spill.added{border-color:var(--green);background:rgba(34,197,94,.1);color:var(--green);}
+.spill.creme-sel{border-color:var(--am);background:rgba(245,196,0,.15);color:var(--am);}
+/* Painel de adicionais dos Cremes */
+#creme-panel{background:rgba(0,0,0,0.25);border-radius:12px;padding:14px;margin-top:8px;}
+.creme-panel-titulo{font-size:.85rem;font-weight:900;color:var(--am);margin-bottom:12px;letter-spacing:.5px;}
 
 .montagem-card{
   background:var(--card);border:2px solid var(--border);border-radius:14px;
@@ -969,10 +973,26 @@ function renderMenu() {
 
   // CREMES
   html += `<div id="ms-cremes">
-    <div class="sec-banner"><div class="sec-banner-icon">🍨</div><div><div class="sec-banner-title">Cremes</div><div class="sec-banner-sub">Cremosos e gelados — toque para adicionar</div></div></div>
+    <div class="sec-banner"><div class="sec-banner-icon">🍨</div><div><div class="sec-banner-title">Cremes</div><div class="sec-banner-sub">Cremosos e gelados — toque para escolher</div></div></div>
     <div class="pbadge">🍨 Todos os sabores: R$ 15,00</div>
-    <div class="spill-grid">${CREMES_LIST.map(s=>`<div class="spill" onclick="addCreme('${s}')">${s}</div>`).join('')}</div>
-    <div class="note-box" style="margin-top:12px;">💡 Adicionais: Leite Condensado +R$3,00 · Sonho de Valsa +R$3,00</div>
+    <div class="spill-grid" id="creme-pills">
+      ${CREMES_LIST.map(s=>`<div class="spill" onclick="openCremePanel('${s}')">${s}</div>`).join('')}
+    </div>
+    <div id="creme-panel" style="display:none;">
+      <div class="creme-panel-titulo">🍨 <span id="creme-nome-sel"></span></div>
+      <div class="ads-section-title">➕ Adicionais</div>
+      <div class="ads-grid-full">
+        <span class="ad-tag" id="cad-leite" onclick="toggleCremeAd('cad-leite','Leite Condensado',3)">
+          Leite Condensado <span class="ad-price">+R$ 3,00</span>
+        </span>
+        <span class="ad-tag" id="cad-sonho" onclick="toggleCremeAd('cad-sonho','Sonho de Valsa',3)">
+          Sonho de Valsa <span class="ad-price">+R$ 3,00</span>
+        </span>
+      </div>
+      <button class="add-to-cart-btn" style="margin-top:14px;" onclick="confirmarCreme()">
+        🛒 Adicionar ao Carrinho
+      </button>
+    </div>
   </div>`;
 
   mc.innerHTML = html;
@@ -1647,9 +1667,67 @@ function addSuco(sabor) {
   });
 }
 
+// Estado do painel de Cremes
+var cremeAtual = { sabor: '', extras: [] };
+
+function openCremePanel(sabor) {
+  cremeAtual = { sabor: sabor, extras: [] };
+  // Reset adicionais
+  var leite = document.getElementById('cad-leite');
+  var sonho = document.getElementById('cad-sonho');
+  if(leite) leite.classList.remove('selected');
+  if(sonho) sonho.classList.remove('selected');
+  // Mostrar nome do sabor selecionado
+  var nome = sabor.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\s]*/u, '').trim();
+  if(!nome) nome = sabor.replace(/^[^\w\s]*\s*/, '').trim();
+  var nomeEl = document.getElementById('creme-nome-sel');
+  if(nomeEl) nomeEl.textContent = nome;
+  // Destacar pill selecionado
+  document.querySelectorAll('#creme-pills .spill').forEach(function(p){
+    p.classList.remove('creme-sel');
+    if(p.textContent.trim() === sabor.trim()) p.classList.add('creme-sel');
+  });
+  // Exibir painel
+  var panel = document.getElementById('creme-panel');
+  if(panel){
+    panel.style.display = 'block';
+    setTimeout(function(){ panel.scrollIntoView({ behavior:'smooth', block:'nearest' }); }, 50);
+  }
+}
+
+function toggleCremeAd(id, nome, price) {
+  var el = document.getElementById(id);
+  if(!el) return;
+  el.classList.toggle('selected');
+  var idx = cremeAtual.extras.findIndex(function(x){ return x.n === nome; });
+  if(el.classList.contains('selected')){
+    if(idx === -1) cremeAtual.extras.push({ n: nome, p: price });
+  } else {
+    if(idx !== -1) cremeAtual.extras.splice(idx, 1);
+  }
+}
+
+function confirmarCreme() {
+  if(!cremeAtual.sabor){ showToast('⚠️ Selecione um sabor'); return; }
+  var nome = cremeAtual.sabor.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\s]*/u, '').trim();
+  if(!nome) nome = cremeAtual.sabor.replace(/^[^\w\s]*\s*/, '').trim();
+  var extraPrice = cremeAtual.extras.reduce(function(a,x){ return a + x.p; }, 0);
+  var total = 15 + extraPrice;
+  var displayName = 'Creme de ' + nome;
+  if(cremeAtual.extras.length){
+    displayName += ' (+' + cremeAtual.extras.map(function(x){ return x.n; }).join(', ') + ')';
+  }
+  quickAdd(displayName, '🍨', total, 'Cremes');
+  // Fechar painel e resetar
+  var panel = document.getElementById('creme-panel');
+  if(panel) panel.style.display = 'none';
+  document.querySelectorAll('#creme-pills .spill').forEach(function(p){ p.classList.remove('creme-sel'); });
+  cremeAtual = { sabor: '', extras: [] };
+}
+
 function addCreme(sabor) {
-  var nome = sabor.replace(/^[^\w\s]*\s*/, '').trim();
-  quickAdd('Creme de ' + nome, '🍨', 15, 'Sucos/Cremes');
+  // Mantido para compatibilidade — redireciona para o painel
+  openCremePanel(sabor);
 }
 
 var itemMontagem = {};

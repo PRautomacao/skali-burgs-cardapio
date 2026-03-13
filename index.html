@@ -413,6 +413,18 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 .ad-tag:hover{border-color:var(--am);color:var(--am);}
 .ad-tag.selected{background:rgba(245,196,0,.2);border-color:var(--am);color:var(--am);}
 .ad-tag .ad-price{opacity:.7;font-size:.65rem;}
+/* Adicional grátis (substituição) */
+.ad-tag.free-ad{background:rgba(34,197,94,.18);border-color:rgba(34,197,94,.6);color:#22c55e;}
+.ad-tag.free-ad .ad-price{text-decoration:line-through;opacity:.5;}
+.ad-tag.free-ad::after{content:' GRÁTIS';font-size:.6rem;font-weight:900;color:#22c55e;margin-left:2px;}
+/* Carne — sempre paga */
+.ad-tag.carne-tag{opacity:.65;border-style:dashed;}
+.ad-tag.carne-tag.selected{background:rgba(245,196,0,.2);border-color:var(--am);color:var(--am);}
+/* Badge de slot grátis */
+.free-slot-info{font-size:.67rem;font-weight:800;padding:5px 10px;border-radius:8px;display:inline-block;margin:6px 0 10px;transition:all .3s;}
+.free-slot-info.disponivel{color:#22c55e;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);}
+.free-slot-info.usado{color:var(--am);background:rgba(245,196,0,.1);border:1px solid rgba(245,196,0,.3);}
+.free-slot-info.inativo{color:var(--txt2);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);}
 .add-to-cart-btn{
   width:100%;margin-top:14px;padding:12px;
   background:linear-gradient(135deg,var(--am),var(--am2));
@@ -647,8 +659,16 @@ body{display:flex;flex-direction:column;min-height:100vh;}
       <input class="form-input" id="f-tel" type="tel" placeholder="(64) 99999-9999">
     </div>
     <div class="form-group" id="fg-endereco">
-      <label class="form-label">Endereço completo <span>*</span></label>
-      <input class="form-input" id="f-end" type="text" placeholder="Rua, número, bairro, referência...">
+      <label class="form-label">Endereço <span>*</span></label>
+      <input class="form-input" id="f-end" type="text" placeholder="Rua, Avenida, Alameda...">
+    </div>
+    <div class="form-group" id="fg-quadra">
+      <label class="form-label">Quadra / Lote / Número <span>*</span></label>
+      <input class="form-input" id="f-quadra" type="text" placeholder="Ex: Quadra 5, Lote 12, Nº 34...">
+    </div>
+    <div class="form-group" id="fg-setor">
+      <label class="form-label">Setor / Referência <span>*</span></label>
+      <input class="form-input" id="f-setor" type="text" placeholder="Ex: Setor Norte, próximo ao mercado...">
     </div>
   </div>
   <div class="form-footer">
@@ -839,7 +859,10 @@ function goTo(n) {
   }
   if(n===3) renderCart();
   if(n===4) {
-    document.getElementById('fg-endereco').style.display = entrega==='delivery'?'block':'none';
+    const showEnd = entrega==='delivery'?'block':'none';
+    document.getElementById('fg-endereco').style.display = showEnd;
+    document.getElementById('fg-quadra').style.display   = showEnd;
+    document.getElementById('fg-setor').style.display    = showEnd;
     atualizarBannerS4();
   }
   if(n===5) renderResumo();
@@ -970,16 +993,40 @@ function buildItemCard(item, key, secTitle, ings) {
   }
 
   // Itens COM ads:true (sanduíches) → painel completo
+  // Sucos e Cremes NÃO recebem painel de ingredientes/adicionais
+  const isSucoOuCreme = ['suco','creme','bebida'].some(k => secTitle.toLowerCase().includes(k));
+  if(isSucoOuCreme){
+    return `<div class="mitem" id="mi-${key}">
+      <div class="mitem-header no-click" style="cursor:default;">
+        <span class="mitem-emoji">${item.e}</span>
+        <div class="mitem-info">
+          <div class="mitem-name">${item.n}</div>
+          ${item.d ? `<div class="mitem-desc">${item.d}</div>` : ''}
+        </div>
+        <div class="mitem-right">
+          <span class="mitem-price">${fmt(item.p)}</span>
+          <button class="add-btn" id="addbtn-${key}"
+            onclick="quickAdd('${item.n}','${item.e}',${item.p},'${secTitle}');animAddBtn('addbtn-${key}')">+</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
   const hasIngs = ings.length > 0;
   const ingsHtml = hasIngs ? ings.map((ing,i) =>
     `<span class="ing-tag" onclick="toggleIng(this,'${key}',${i})">${ing}</span>`
   ).join('') : '';
 
-  const adsHtml = ADICIONAIS.map(a =>
-    `<span class="ad-tag" onclick="toggleAd(this,'${key}','${a.n}',${a.p})">
+  // Preço máximo para substituição grátis (excluir carnes)
+  const PRECO_MAX_GRATIS = 4;
+  const adsHtml = ADICIONAIS.map(a => {
+    const isCarne = a.p > PRECO_MAX_GRATIS;
+    const carneClass = isCarne ? ' carne-tag' : '';
+    const carneTip = isCarne ? ' title="Carnes não entram na substituição grátis"' : '';
+    return `<span class="ad-tag${carneClass}" onclick="toggleAd(this,'${key}','${a.n}',${a.p},${isCarne})"${carneTip}>
        ${a.n} <span class="ad-price">+${fmt(a.p)}</span>
-     </span>`
-  ).join('');
+     </span>`;
+  }).join('');
 
   return `<div class="mitem" id="mi-${key}">
     <div class="mitem-header" onclick="openItem('mi-${key}')">
@@ -999,13 +1046,10 @@ function buildItemCard(item, key, secTitle, ings) {
       ${hasIngs ? `
       <div class="ing-section-title">🥗 Ingredientes — toque para retirar</div>
       <div class="ing-grid" id="ings-${key}">${ingsHtml}</div>
-      <div class="ing-section-title">🔄 Substituir por (1 grátis)</div>
-      <div class="ing-sub-row">
-        <input class="ing-sub-input" id="sub-${key}" type="text" placeholder="Ex: cheddar, molho especial..." oninput="checkSubPaid('${key}')">
-        <span class="ing-sub-badge" id="sub-badge-${key}">Grátis ao retirar ingrediente</span>
-      </div>
       ` : ''}
-      <div class="ads-section-title">➕ Adicionais pagos</div>
+      <div class="ads-section-title">➕ Adicionais
+        <span id="free-slot-${key}" class="free-slot-info inativo" style="margin-left:8px;vertical-align:middle;">🔄 Retire um ingrediente para ganhar 1 grátis (exceto carnes)</span>
+      </div>
       <div class="ads-grid-full" id="ads-${key}">${adsHtml}</div>
       <div class="ing-section-title">⚙️ Montagem — como quer seu lanche?</div>
       <div style="display:grid;grid-template-columns:repeat(${entrega==='delivery'?2:3},1fr);gap:8px;margin:8px 0 12px;">
@@ -1059,74 +1103,98 @@ function toggleMitem(id){ openItem(id); }
 
 // Ingredientes
 const itemRemovals = {}; // key -> Set of indexes removed
-const itemExtras   = {}; // key -> [{n,p}]
+const itemExtras   = {}; // key -> [{n,p,free}]
+const itemFreeAd   = {}; // key -> name do adicional grátis (ou null)
+const PRECO_MAX_GRATIS = 4; // R$4 — carnes acima disso não entram na substituição grátis
 
 function toggleIng(el, key, idx){
   if(!itemRemovals[key]) itemRemovals[key] = new Set();
   el.classList.toggle('removed');
   if(el.classList.contains('removed')) itemRemovals[key].add(idx);
   else itemRemovals[key].delete(idx);
-  // Update sub badge
-  updateSubBadge(key);
-}
-
-function toggleAd(el, key, name, price){
-  el.classList.toggle('selected');
-  if(!itemExtras[key]) itemExtras[key] = [];
-  const existing = itemExtras[key].findIndex(x=>x.n===name);
-  if(el.classList.contains('selected')){
-    if(existing===-1) itemExtras[key].push({n:name,p:price});
-  } else {
-    if(existing!==-1) itemExtras[key].splice(existing,1);
+  // Se removeu todos os ingredientes, cancela o slot grátis se estava em uso
+  if((!itemRemovals[key] || itemRemovals[key].size === 0) && itemFreeAd[key]){
+    // Deseleciona o adicional grátis
+    const freeTag = [...document.querySelectorAll(`#ads-${key} .ad-tag.free-ad`)][0];
+    if(freeTag){
+      freeTag.classList.remove('selected','free-ad');
+      const freeName = itemFreeAd[key];
+      if(itemExtras[key]){
+        const idx2 = itemExtras[key].findIndex(x=>x.n===freeName);
+        if(idx2!==-1) itemExtras[key].splice(idx2,1);
+      }
+    }
+    itemFreeAd[key] = null;
   }
+  updateFreeSlot(key);
 }
 
-function updateSubBadge(key){
-  const badge = document.getElementById('sub-badge-'+key);
+function toggleAd(el, key, name, price, isCarne){
+  const hasRemoved = itemRemovals[key] && itemRemovals[key].size > 0;
+  const isSelected = el.classList.contains('selected');
+  if(!itemExtras[key]) itemExtras[key] = [];
+
+  if(isSelected){
+    // Desselecionar
+    el.classList.remove('selected','free-ad');
+    const idx = itemExtras[key].findIndex(x=>x.n===name);
+    if(idx!==-1) itemExtras[key].splice(idx,1);
+    if(itemFreeAd[key]===name) itemFreeAd[key]=null;
+  } else {
+    // Selecionar
+    const freeSlotLivre = hasRemoved && !itemFreeAd[key];
+    const podeSerGratis = freeSlotLivre && !isCarne && price <= PRECO_MAX_GRATIS;
+    const tentouCarneGratis = freeSlotLivre && (isCarne || price > PRECO_MAX_GRATIS);
+
+    if(tentouCarneGratis){
+      showToast('⚠️ Carnes não entram na substituição grátis — será cobrado normalmente');
+    }
+
+    el.classList.add('selected');
+    if(podeSerGratis){
+      el.classList.add('free-ad');
+      itemFreeAd[key] = name;
+      itemExtras[key].push({n:name, p:0, free:true});
+    } else {
+      itemExtras[key].push({n:name, p:price, free:false});
+    }
+  }
+  updateFreeSlot(key);
+}
+
+function updateFreeSlot(key){
+  const badge = document.getElementById('free-slot-'+key);
   if(!badge) return;
   const hasRemoved = itemRemovals[key] && itemRemovals[key].size > 0;
-  badge.textContent = hasRemoved ? '1 substituição grátis ✓' : 'Grátis';
-  badge.className = 'ing-sub-badge';
-  checkSubPaid(key);
-}
-
-function checkSubPaid(key){
-  const badge  = document.getElementById('sub-badge-'+key);
-  const input  = document.getElementById('sub-'+key);
-  if(!badge || !input) return;
-  const hasRemoved = itemRemovals[key] && itemRemovals[key].size > 0;
-  const hasText = input.value.trim().length > 0;
-  if(hasText && !hasRemoved){
-    badge.textContent = '⚠️ Retire um item para trocar grátis';
-    badge.className = 'ing-sub-badge paid';
-  } else if(hasText && hasRemoved){
-    badge.textContent = '✓ Substituição grátis';
-    badge.className = 'ing-sub-badge';
+  const freeUsado  = !!itemFreeAd[key];
+  if(!hasRemoved){
+    badge.className='free-slot-info inativo';
+    badge.textContent='🔄 Retire um ingrediente para ganhar 1 grátis (exceto carnes)';
+  } else if(freeUsado){
+    badge.className='free-slot-info usado';
+    badge.textContent='✅ Substituição grátis: ' + itemFreeAd[key];
   } else {
-    badge.textContent = 'Grátis ao retirar ingrediente';
-    badge.className = 'ing-sub-badge';
+    badge.className='free-slot-info disponivel';
+    badge.textContent='🎁 1 adicional grátis disponível (exceto carnes)';
   }
 }
 
 function addCustomItem(name, emoji, price, category, key){
   const removed = itemRemovals[key] ? [...itemRemovals[key]] : [];
-  const subInput = document.getElementById('sub-'+key);
-  const subVal   = subInput ? subInput.value.trim() : '';
-  const extras   = itemExtras[key] || [];
+  const extras  = itemExtras[key] || [];
 
   // build notes
   let notes = [];
   if(removed.length){
-    // get ingredient names
     const ingEls = document.querySelectorAll(`#ings-${key} .ing-tag`);
     const removedNames = [...ingEls].filter(e=>e.classList.contains('removed')).map(e=>e.textContent.replace('✕ ','').trim());
     if(removedNames.length) notes.push('Sem: ' + removedNames.join(', '));
   }
-  if(subVal) notes.push('Sub: ' + subVal);
-  if(extras.length){
-    const extraStr = extras.map(x=>x.n).join(', ');
-    notes.push('+' + extraStr);
-  }
+  // Separar extras grátis dos pagos nas notas
+  const freeExtras = extras.filter(x=>x.free);
+  const paidExtras = extras.filter(x=>!x.free);
+  if(freeExtras.length) notes.push('Grátis: ' + freeExtras.map(x=>x.n).join(', '));
+  if(paidExtras.length) notes.push('+' + paidExtras.map(x=>x.n).join(', '));
 
   const mont = itemMontagem[key];
   if(mont) notes.push('Montagem: ' + mont.nome);
@@ -1156,15 +1224,15 @@ function addCustomItem(name, emoji, price, category, key){
   // reset selections for this item
   delete itemRemovals[key];
   delete itemExtras[key];
+  delete itemFreeAd[key];
   delete itemMontagem[key];
   document.querySelectorAll(`#ings-${key} .ing-tag`).forEach(t=>t.classList.remove('removed'));
-  document.querySelectorAll(`#ads-${key} .ad-tag`).forEach(t=>t.classList.remove('selected'));
+  document.querySelectorAll(`#ads-${key} .ad-tag`).forEach(t=>t.classList.remove('selected','free-ad'));
   ['prato','saquinho','prensado'].forEach(function(t){
     var c = document.getElementById('mont-'+t+'-'+key);
     if(c) c.classList.remove('selected');
   });
-  if(subInput) subInput.value='';
-  updateSubBadge(key);
+  updateFreeSlot(key);
 }
 
 function quickAdd(name, emoji, price, category){
@@ -1285,12 +1353,18 @@ function cartItemQty(i,d){ cart[i].qty+=d; if(cart[i].qty<=0)cart.splice(i,1); r
 // TELA 4 — VALIDAR
 // ══════════════════════════════════════
 function validarDados(){
-  const nome=document.getElementById('f-nome').value.trim();
-  const tel=document.getElementById('f-tel').value.trim();
-  const end=document.getElementById('f-end').value.trim();
+  const nome  = document.getElementById('f-nome').value.trim();
+  const tel   = document.getElementById('f-tel').value.trim();
+  const end   = document.getElementById('f-end').value.trim();
+  const quadra= document.getElementById('f-quadra').value.trim();
+  const setor = document.getElementById('f-setor').value.trim();
   if(!nome){showToast('⚠️ Informe seu nome');return;}
   if(!tel){showToast('⚠️ Informe seu telefone');return;}
-  if(entrega==='delivery'&&!end){showToast('⚠️ Informe o endereço para entrega');return;}
+  if(entrega==='delivery'){
+    if(!end)   {showToast('⚠️ Informe o endereço (rua/avenida)');return;}
+    if(!quadra){showToast('⚠️ Informe a quadra, lote ou número');return;}
+    if(!setor) {showToast('⚠️ Informe o setor ou referência');return;}
+  }
   goTo(5);
 }
 
@@ -1298,12 +1372,17 @@ function validarDados(){
 // TELA 5 — RESUMO
 // ══════════════════════════════════════
 function renderResumo(){
-  const nome=document.getElementById('f-nome').value.trim();
-  const tel=document.getElementById('f-tel').value.trim();
-  const end=document.getElementById('f-end').value.trim();
+  const nome  = document.getElementById('f-nome').value.trim();
+  const tel   = document.getElementById('f-tel').value.trim();
+  const end   = document.getElementById('f-end').value.trim();
+  const quadra= document.getElementById('f-quadra').value.trim();
+  const setor = document.getElementById('f-setor').value.trim();
+  const endCompleto = entrega==='delivery'
+    ? [end, quadra, setor].filter(Boolean).join(' — ')
+    : '';
   document.getElementById('r-nome').textContent=nome;
   document.getElementById('r-tel').textContent=tel;
-  document.getElementById('r-end').textContent=end||'—';
+  document.getElementById('r-end').textContent=endCompleto||'—';
   document.getElementById('r-end-row').style.display=entrega==='delivery'?'flex':'none';
   document.getElementById('r-entrega').innerHTML=entrega==='delivery'
     ?'🛵 <strong>Delivery</strong> — Taxa: <strong style="color:var(--am)">R$ 5,00</strong>'
@@ -1355,9 +1434,12 @@ function toggleTroco(){
 // ══════════════════════════════════════
 async function enviarPedido(){
   if(!pagamento){showToast('⚠️ Selecione a forma de pagamento');return;}
-  const nome=document.getElementById('f-nome').value.trim();
-  const tel=document.getElementById('f-tel').value.trim();
-  const end=document.getElementById('f-end').value.trim();
+  const nome  = document.getElementById('f-nome').value.trim();
+  const tel   = document.getElementById('f-tel').value.trim();
+  const end   = document.getElementById('f-end').value.trim();
+  const quadra= document.getElementById('f-quadra').value.trim();
+  const setor = document.getElementById('f-setor').value.trim();
+  const endCompleto = entrega==='delivery' ? [end, quadra, setor].filter(Boolean).join(' — ') : '';
   const troco=document.getElementById('troco-cb').checked?document.getElementById('troco-val').value:'';
   const taxa=entrega==='delivery'?TAXA:0;
   const total=cartTotal()+taxa;
@@ -1369,7 +1451,7 @@ async function enviarPedido(){
   const pedidoPayload = {
     cliente: nome,
     telefone: tel,
-    endereco: entrega === 'delivery' ? end : '',
+    endereco: entrega === 'delivery' ? endCompleto : '',
     entrega: entrega,
     pagamento: pagamento,
     troco: troco || null,
@@ -1634,9 +1716,12 @@ function selectMontagem(nome, emoji, preco, cardId) {
       window.enviarPedido = async function() {
         if(!pagamento){showToast('?? Selecione a forma de pagamento');return;}
 
-        const nome = document.getElementById('f-nome').value.trim();
-        const tel = document.getElementById('f-tel').value.trim();
-        const end = document.getElementById('f-end').value.trim();
+        const nome   = document.getElementById('f-nome').value.trim();
+        const tel    = document.getElementById('f-tel').value.trim();
+        const end    = document.getElementById('f-end').value.trim();
+        const quadra = document.getElementById('f-quadra').value.trim();
+        const setor  = document.getElementById('f-setor').value.trim();
+        const endCompleto = entrega==='delivery' ? [end, quadra, setor].filter(Boolean).join(' — ') : '';
         const obs = '';
         const troco = document.getElementById('troco-cb').checked ? document.getElementById('troco-val').value : '';
         const taxa = entrega === 'delivery' ? TAXA : 0;
@@ -1647,7 +1732,7 @@ function selectMontagem(nome, emoji, preco, cardId) {
           criado_em: new Date().toISOString(),
           cliente: nome,
           telefone: tel,
-          endereco: entrega === 'delivery' ? end : '',
+          endereco: entrega === 'delivery' ? endCompleto : '',
           entrega: entrega,
           pagamento: pagamento,
           observacoes: obs,

@@ -918,7 +918,13 @@ function renderMenu() {
   mc.dataset.built = '1';
   let html = '';
 
+  // Categorias já renderizadas de forma hardcoded no final (spill-grid)
+  const CAT_HARDCODED = ['suco','creme','bebida'];
+
   MENU.forEach(sec => {
+    // Pular categorias que já aparecem hardcoded abaixo
+    if(CAT_HARDCODED.some(k => sec.title.toLowerCase().includes(k))) return;
+
     html += `<div id="ms-${sec.id}">
       <div class="sec-banner">
         <div class="sec-banner-icon">${sec.icon}</div>
